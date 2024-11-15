@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>360 Virtual College Tour</title>
+    <style>
+        /* Panorama viewer container */
+        #panorama-viewer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Style for text infospots */
+        .infospot-text {
+            position: absolute;
+            font-size: 18px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+
+        /* Popup container */
+        .popup {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        /* The actual popup (appears on top) */
+        .popup .popuptext {
+            visibility: hidden;
+            width: 160px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -80px;
+        }
+
+        /* Popup arrow */
+        .popup .popuptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        /* Toggle this class when clicking on the popup container (hide and show the popup) */
+        .popup .show {
+            visibility: visible;
+            -webkit-animation: fadeIn 1s;
+            animation: fadeIn 1s;
+        }
+
+        /* Add animation (fade in the popup) */
+        @-webkit-keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+    </style>
+</head>
+<body>
+    <!-- Panorama Viewer Container -->
+    <div id="panorama-viewer"></div>
+
+    <!-- Panolens.js and Three.js Scripts -->
+    <script src="zeroth/js/threee.min.js"></script> <!-- Adjust path as needed -->
+    <script src="zeroth/js/panolens.min.js"></script> <!-- Adjust path as needed -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.3/gsap.min.js"></script>
+
+    <script>
+        // Initialize the Panolens viewer
+        const viewer = new PANOLENS.Viewer({
+            container: document.getElementById('panorama-viewer'),
+            autoHideInfospot: false,
+            controlBar: true
+        });
+
+        // Load your custom 360 images (ensure paths to images are correct)
+        const panorama1 = new PANOLENS.ImagePanorama('zeroth/images/image1.jpg');
+        const panorama2 = new PANOLENS.ImagePanorama('zeroth/images/image2.jpg');
+
+        // Add each panorama to the viewer
+        viewer.add(panorama1, panorama2);
+
+        // Function to add a text-based infospot with popup
+        function addTextInfospot(panorama, azimuthAngle) {
+            const infospot = new PANOLENS.Infospot(300); // No image needed for text-based infospot
+            infospot.position.setFromSphericalCoords(5000, Math.PI / 2, azimuthAngle * (Math.PI / 180)); // Place at specific angle
+
+            // Create the popup structure
+            const popupElement = document.createElement('div');
+            popupElement.classList.add('popup');
+            popupElement.innerHTML = `
+                Click me!
+                <span class="popuptext" id="myPopup">Welcome to the 360 College Tour</span>
+            `;
+
+            // Add event to toggle the popup visibility
+            popupElement.onclick = function () {
+                const popupText = popupElement.querySelector('.popuptext');
+                popupText.classList.toggle('show');
+            };
+
+            // Append the popup element to the infospot
+            infospot.element = popupElement;
+            panorama.add(infospot);
+        }
+
+        // Add text-based infospot at 100 degrees in panorama1 with popup
+        addTextInfospot(panorama1, 100);
+
+        // Add arrow infospots for navigation
+        function addArrowInfospot(panorama, azimuthAngle, targetPanorama, textContent) {
+            const infospot = new PANOLENS.Infospot(300, 'zeroth/images/arrowfront.png'); // Adjust arrow icon path
+            infospot.position.setFromSphericalCoords(5000, Math.PI / 2, azimuthAngle * (Math.PI / 180)); // Math.PI / 2 places it horizontally
+            infospot.addHoverText(textContent, 50); // Set hover text
+            infospot.addEventListener('click', () => {
+                viewer.setPanorama(targetPanorama);
+            });
+            panorama.add(infospot);
+        }
+
+        // Add navigation arrows
+        addArrowInfospot(panorama1, 90, panorama2, 'Go to the next view');    // Right view arrow at 90° (to panorama2)
+        addArrowInfospot(panorama2, 180, panorama1, 'Go back to the first view');   // Left view arrow at 180° (back to panorama1)
+
+        // GSAP Animation to smoothly move the camera when the tour starts
+        gsap.to(viewer.getControl().target, { 
+            duration: 1.5, 
+            x: 0, 
+            y: 0, 
+            z: 500 
+        });
+        // Loading texture and ensuring power-of-two dimensions
+        var texture = new THREE.TextureLoader().load('path_to_image.jpg');
+var width = texture.image.width;
+var height = texture.image.height;
+
+// Check if the image size is power-of-two and resize if necessary
+var texture = new THREE.TextureLoader().load('path_to_image.jpg');
+texture.image.width = 512;  // Resize to power-of-two dimensions
+texture.image.height = 512;
+texture.needsUpdate = true;
+
+
+
+    </script>
+</body>
+</html>
